@@ -620,10 +620,20 @@ def encode_tokens(
     string = clean_text(string)
 
     messages = []
+    # Process the input string and identify context regions
+    parts = []
+    segments = string.split("<context>")
+    for i, segment in enumerate(segments):
+        sub_segments = segment.split("</context>")
+    
+        for j, sub_segment in enumerate(sub_segments):
+            is_context = (i % 2 == 1) and (j == 0)
+            parts.append(TextPart(text=sub_segment, is_context=is_context))
+
     messages.append(
         Message(
             role="user",
-            parts=[TextPart(text=string)],
+            parts=parts,
             cal_loss=False,
         )
     )
