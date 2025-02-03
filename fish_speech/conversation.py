@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, List
 
 import torch
 
@@ -21,6 +21,7 @@ class VQPart(BasePart):
 @dataclass(kw_only=True)
 class TextPart(BasePart):
     text: str
+    is_context: bool = False  # Flag to indicate if this part is context
 
 
 @dataclass(kw_only=True)
@@ -66,10 +67,16 @@ class Message:
 
         for part in parts:
             if isinstance(part, TextPart):
-                tokens = torch.tensor(
+                if part.is_context:
+                    tokens = torch.tensor(
+                        tokenizer.encode("<|context_start|>") + tokenizer.encode(part.text) + tokenizer.encode("<|context_end|>"),
+                        dtype=torch.int,
+                  )
+                else:
+                    tokens = torch.tensor(
                     tokenizer.encode(part.text),
                     dtype=torch.int,
-                )
+                    )
             elif isinstance(part, VQPart):
                 curr_codes = part.codes.clone()
                 tokens = torch.tensor(
@@ -179,7 +186,7 @@ class Conversation:
         self: "Conversation",
         tokenizer: FishTokenizer,
         num_codebooks: int,
-    ) -> EncodedMessage:
+    ) -> torch.Tensor:
         # self.visualize(tokenizer)
 
         encoded = self.encode(tokenizer, add_shift=False)
@@ -197,6 +204,7 @@ class Conversation:
         values[1:, encoded.vq_mask_tokens] = vq_parts
 
         return values
+
 
     def visualize(
         self: "Conversation",
@@ -243,22 +251,29 @@ class Conversation:
 
 
 if __name__ == "__main__":
+    tokenizer = FishTokenizer.from_pretrained("checkpoints/Qwen2-1.5B-Instruct")
+
     message0 = Message(
         role="user",
         parts=[
-            TextPart(text="Hello, how are you?"),
-            VQPart(codes=torch.zeros((4, 10))),
+             TextPart(text="We are being attacked, may day may day", is_context=True),
+             TextPart(text=' "Please help me I\'m on fire!" '),
+             TextPart(text="We need to evacuate immediately", is_context=True)
+
         ],
         cal_loss=False,
+        modality="text"
     )
 
     message1 = Message(
         role="assistant",
-        parts=[TextPart(text="I'm fine, thank you.")],
+        parts=[TextPart(text="I'm coming to help, please stay calm.")],
         cal_loss=True,
+        modality="text"
     )
+
+
     conversation = Conversation([message0, message1])
-    tokenizer = FishTokenizer.from_pretrained("checkpoints/Qwen2-1.5B-Instruct")
     conversation.visualize(tokenizer)
 
     encoded = conversation.encode(tokenizer)
