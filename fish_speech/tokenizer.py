@@ -27,7 +27,8 @@ EOS_TOKEN = "<|end_of_text|>"
 PAD_TOKEN = "<|pad|>"
 IM_START_TOKEN = "<|im_start|>"
 IM_END_TOKEN = "<|im_end|>"
-
+CONTEXT_START_TOKEN = "<|context_start|>"
+CONTEXT_END_TOKEN = "<|context_end|>"
 MODALITY_TEXT_TOKEN = "<|text|>"
 MODALITY_VOICE_TOKEN = "<|voice|>"
 MODALITY_INTERLEAVE_TOKEN = "<|interleave|>"
@@ -36,6 +37,7 @@ MODALITY_TOKENS = {
     "voice": MODALITY_VOICE_TOKEN,
     "interleave": MODALITY_INTERLEAVE_TOKEN,
 }
+
 
 PLACEHOLDER_TOKEN = [""] * 4
 for i in range(4):
@@ -59,6 +61,8 @@ ALL_SPECIAL_TOKENS = [
     MODALITY_VOICE_TOKEN,
     MODALITY_INTERLEAVE_TOKEN,
     *SEMANTIC_TOKENS,
+    CONTEXT_START_TOKEN,
+    CONTEXT_END_TOKEN
 ]
 
 
@@ -75,6 +79,9 @@ class FishTokenizer:
         }
         self.semantic_begin_id = self.all_special_tokens_with_ids[SEMANTIC_TOKENS[0]]
         self.semantic_end_id = self.all_special_tokens_with_ids[SEMANTIC_TOKENS[-1]]
+        
+        self.context_start_id = self.all_special_tokens_with_ids[CONTEXT_START_TOKEN]
+        self.context_end_id = self.all_special_tokens_with_ids[CONTEXT_END_TOKEN]
 
         self.tkt_model = tiktoken.core.Encoding(
             name=Path(model_path).stem,
@@ -148,5 +155,19 @@ if __name__ == "__main__":
         [
             tokenizer.decode([i])
             for i in tokenizer.encode(f"{BOS_TOKEN}你好，世界！{EOS_TOKEN}")
+        ]
+    )
+    
+    print(
+        [
+            tokenizer.decode([i])
+            for i in tokenizer.encode(f"{CONTEXT_START_TOKEN}你好，世界！{CONTEXT_END_TOKEN}")
+        ]
+    )
+
+    print(
+        [
+            tokenizer.decode([i])
+            for i in tokenizer.encode(f"{CONTEXT_START_TOKEN}{BOS_TOKEN}你好，世界！{CONTEXT_END_TOKEN}{EOS_TOKEN}")
         ]
     )
