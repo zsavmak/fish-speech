@@ -182,7 +182,7 @@ class Conversation:
             vq_require_losses=vq_require_losses,
         )
 
-def encode_for_inference(
+    def encode_for_inference(
         self: "Conversation",
         tokenizer: FishTokenizer,
         num_codebooks: int,
@@ -215,7 +215,7 @@ def encode_for_inference(
         return values
 
 
-def visualize(
+    def visualize(
         self: "Conversation",
         tokenizer: FishTokenizer,
         ignore_loss_tokens: list[str] = [],
@@ -255,8 +255,8 @@ def visualize(
 
         print()
 
-def append(self: "Conversation", message: Message):
-    self.messages.append(message)
+    def append(self: "Conversation", message: Message):
+        self.messages.append(message)
 
 
 if __name__ == "__main__":
