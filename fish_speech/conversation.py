@@ -215,7 +215,7 @@ def encode_for_inference(
         return values
 
 
-    def visualize(
+def visualize(
         self: "Conversation",
         tokenizer: FishTokenizer,
         ignore_loss_tokens: list[str] = [],
