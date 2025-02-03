@@ -182,7 +182,7 @@ class Conversation:
             vq_require_losses=vq_require_losses,
         )
 
-    def encode_for_inference(
+def encode_for_inference(
         self: "Conversation",
         tokenizer: FishTokenizer,
         num_codebooks: int,
@@ -200,8 +200,17 @@ class Conversation:
         vq_parts = encoded.vq_parts
         vq_parts = [part.to(values.device) for part in vq_parts]
         vq_parts = torch.cat(vq_parts, dim=1)
-        values[0, encoded.vq_mask_tokens] = vq_parts[0] + tokenizer.semantic_begin_id
-        values[1:, encoded.vq_mask_tokens] = vq_parts
+        
+        # Find indices of tokens NOT representing context
+        is_not_context = torch.ones_like(encoded.vq_mask_tokens, dtype=torch.bool)
+        for token in ["<|context_start|>", "<|context_end|>"]:
+             token_ids = tokenizer.encode(token)
+             if len(token_ids) != 0: #Make sure the tokenizer has the tokens
+                  is_not_context = is_not_context & (~torch.isin(tokens, torch.tensor(token_ids)))
+        
+        values[0, encoded.vq_mask_tokens & is_not_context] = vq_parts[0] + tokenizer.semantic_begin_id
+        values[1:, encoded.vq_mask_tokens & is_not_context] = vq_parts
+
 
         return values
 
