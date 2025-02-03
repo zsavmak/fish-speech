@@ -255,8 +255,8 @@ def visualize(
 
         print()
 
-    def append(self: "Conversation", message: Message):
-        self.messages.append(message)
+def append(self: "Conversation", message: Message):
+    self.messages.append(message)
 
 
 if __name__ == "__main__":
